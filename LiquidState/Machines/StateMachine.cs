@@ -1,4 +1,4 @@
-﻿// Author: Prasanna V. Loganathar
+// Author: Prasanna V. Loganathar
 // Created: 2:12 AM 27-11-2014
 // Project: LiquidState
 // License: http://www.apache.org/licenses/LICENSE-2.0
@@ -83,9 +83,11 @@ namespace LiquidState.Machines
             foreach (var current in CurrentStateRepresentation.Triggers)
             {
                 if (current.Key.Trigger.Equals(trigger))
-                    return true;
+                {
+                    var predicate = current.Key.ConditionalTriggerPredicate;
+                    return predicate == null || predicate();
+                }
             }
-
             return false;
         }
 

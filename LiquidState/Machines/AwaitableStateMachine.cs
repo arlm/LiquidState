@@ -1,4 +1,4 @@
-﻿// Author: Prasanna V. Loganathar
+// Author: Prasanna V. Loganathar
 // Created: 2:12 AM 27-11-2014
 // Project: LiquidState
 // License: http://www.apache.org/licenses/LICENSE-2.0
@@ -62,14 +62,24 @@ namespace LiquidState.Machines
             }
         }
 
-        public bool CanHandleTrigger(TTrigger trigger)
+        public async Task<bool> CanHandleTriggerAsync(TTrigger trigger)
         {
             foreach (var current in CurrentStateRepresentation.Triggers)
             {
                 if (current.Key.Trigger.Equals(trigger))
-                    return true;
+                {
+                    if ((CheckFlag(current.Key.TransitionFlags, AwaitableStateTransitionFlag.TriggerPredicateReturnsTask)))
+                    {
+                        var predicate = current.Key.ConditionalTriggerPredicate as Func<Task<bool>>;
+                        return predicate == null || await predicate();
+                    }
+                    else
+                    {
+                        var predicate = current.Key.ConditionalTriggerPredicate as Func<bool>;
+                        return predicate == null || predicate();
+                    }
+                }
             }
-
             return false;
         }
 
