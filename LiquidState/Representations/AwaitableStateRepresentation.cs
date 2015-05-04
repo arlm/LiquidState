@@ -12,7 +12,7 @@ namespace LiquidState.Representations
     internal class AwaitableStateRepresentation<TState, TTrigger>
     {
         public readonly TState State;
-        public readonly List<AwaitableTriggerRepresentation<TTrigger, TState>> Triggers;
+        public readonly Dictionary<AwaitableTriggerRepresentation<TTrigger, TState>, Func<bool>> Triggers;
         public object OnEntryAction;
         public object OnExitAction;
         public AwaitableStateTransitionFlag TransitionFlags;
@@ -26,7 +26,7 @@ namespace LiquidState.Representations
 
             State = state;
             // Allocate with capacity as 1 to avoid wastage of memory.
-            Triggers = new List<AwaitableTriggerRepresentation<TTrigger, TState>>(1);
+            Triggers = new Dictionary<AwaitableTriggerRepresentation<TTrigger, TState>, Func<bool>>(1);
         }
     }
 

@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Linq;
 using LiquidState.Common;
 using LiquidState.Representations;
 
@@ -17,14 +18,13 @@ namespace LiquidState.Configuration
         private readonly StateRepresentation<TState, TTrigger> currentStateRepresentation;
 
         internal StateConfigurationHelper(Dictionary<TState, StateRepresentation<TState, TTrigger>> config,
-            TState currentState)
+                                          TState currentState)
         {
             Contract.Requires(config != null);
             Contract.Requires(currentState != null);
 
             Contract.Ensures(this.config != null);
             Contract.Ensures(currentStateRepresentation != null);
-
 
             this.config = config;
             currentStateRepresentation = FindOrCreateStateRepresentation(currentState, config);
@@ -76,7 +76,7 @@ namespace LiquidState.Configuration
         }
 
         public StateConfigurationHelper<TState, TTrigger> PermitReentryIf(Func<bool> predicate, TTrigger trigger,
-            Action onEntryAction)
+                                                                          Action onEntryAction)
         {
             Contract.Requires(trigger != null);
             Contract.Assume(currentStateRepresentation.State != null);
@@ -85,8 +85,8 @@ namespace LiquidState.Configuration
         }
 
         public StateConfigurationHelper<TState, TTrigger> PermitReentryIf<TArgument>(Func<bool> predicate,
-            ParameterizedTrigger<TTrigger, TArgument> trigger,
-            Action<TArgument> onEntryAction)
+                                                                                     ParameterizedTrigger<TTrigger, TArgument> trigger,
+                                                                                     Action<TArgument> onEntryAction)
         {
             Contract.Requires(trigger != null);
             Contract.Assume(currentStateRepresentation.State != null);
@@ -117,7 +117,7 @@ namespace LiquidState.Configuration
         }
 
         public StateConfigurationHelper<TState, TTrigger> Permit(TTrigger trigger, TState resultingState,
-            Action onEntryAction)
+                                                                 Action onEntryAction)
         {
             Contract.Requires(trigger != null);
             Contract.Requires(resultingState != null);
@@ -136,7 +136,7 @@ namespace LiquidState.Configuration
         }
 
         public StateConfigurationHelper<TState, TTrigger> PermitIf(Func<bool> predicate, TTrigger trigger,
-            TState resultingState)
+                                                                   TState resultingState)
         {
             Contract.Requires(trigger != null);
             Contract.Requires(resultingState != null);
@@ -145,7 +145,7 @@ namespace LiquidState.Configuration
         }
 
         public StateConfigurationHelper<TState, TTrigger> PermitIf(Func<bool> predicate, TTrigger trigger,
-            TState resultingState, Action onEntryAction)
+                                                                   TState resultingState, Action onEntryAction)
         {
             Contract.Requires(trigger != null);
             Contract.Requires(resultingState != null);
@@ -154,8 +154,8 @@ namespace LiquidState.Configuration
         }
 
         public StateConfigurationHelper<TState, TTrigger> PermitIf<TArgument>(Func<bool> predicate,
-            ParameterizedTrigger<TTrigger, TArgument> trigger,
-            TState resultingState, Action<TArgument> onEntryAction)
+                                                                              ParameterizedTrigger<TTrigger, TArgument> trigger,
+                                                                              TState resultingState, Action<TArgument> onEntryAction)
         {
             Contract.Requires(trigger != null);
             Contract.Requires(resultingState != null);
@@ -164,7 +164,7 @@ namespace LiquidState.Configuration
         }
 
         internal static StateRepresentation<TState, TTrigger> FindOrCreateStateRepresentation(TState state,
-            Dictionary<TState, StateRepresentation<TState, TTrigger>> config)
+                                                                                              Dictionary<TState, StateRepresentation<TState, TTrigger>> config)
         {
             Contract.Requires(state != null);
             Contract.Requires(config != null);
@@ -184,38 +184,56 @@ namespace LiquidState.Configuration
         }
 
         internal static TriggerRepresentation<TTrigger, TState> FindOrCreateTriggerRepresentation(TTrigger trigger,
-            StateRepresentation<TState, TTrigger> stateRepresentation)
+                                                                                                  Func<bool> predicate,
+                                                                                                  StateRepresentation<TState, TTrigger> stateRepresentation)
         {
             Contract.Requires(stateRepresentation != null);
             Contract.Requires(trigger != null);
 
             Contract.Ensures(Contract.Result<TriggerRepresentation<TTrigger, TState>>() != null);
 
-            var rep = FindTriggerRepresentation(trigger, stateRepresentation);
-            if (rep != null)
+            var repList = FindTriggerRepresentation(trigger, stateRepresentation);
+            if (repList != null && repList.Count == 1)
             {
-                Contract.Assume(rep.Trigger != null);
-                return rep;
+                var rep = repList[0];
+                if (rep.ConditionalTriggerPredicate == predicate)
+                {
+                    Contract.Assume(rep.Trigger != null);
+                    return rep;
+                }
+            }
+                
+            foreach (var rep in repList)
+            {
+                if (rep.Trigger.Equals(trigger) &&
+                    rep.ConditionalTriggerPredicate == predicate)
+                {
+                    Contract.Assume(rep.Trigger != null);
+                    return rep;
+                }
             }
 
-            rep = new TriggerRepresentation<TTrigger, TState>(trigger);
-            stateRepresentation.Triggers.Add(rep);
-            return rep;
+            var newRep = new TriggerRepresentation<TTrigger, TState>(trigger);
+            stateRepresentation.Triggers.Add(newRep, null);
+            return newRep;
         }
 
-        internal static TriggerRepresentation<TTrigger, TState> FindTriggerRepresentation(TTrigger trigger,
-            StateRepresentation<TState, TTrigger> stateRepresentation)
+        internal static List<TriggerRepresentation<TTrigger, TState>> FindTriggerRepresentation(TTrigger trigger,
+                                                                                                StateRepresentation<TState, TTrigger> stateRepresentation)
         {
-            return stateRepresentation.Triggers.Find(x => x.Trigger.Equals(trigger));
+            var list = from state in stateRepresentation.Triggers
+                                where state.Key.Trigger.Equals(trigger)
+                                select state.Key;
+            return list.ToList();
         }
 
         private StateConfigurationHelper<TState, TTrigger> PermitInternal(Func<bool> predicate, TTrigger trigger,
-            TState resultingState, Action onEntryAction)
+                                                                          TState resultingState, Action onEntryAction)
         {
             Contract.Requires<ArgumentNullException>(trigger != null);
             Contract.Requires<ArgumentNullException>(resultingState != null);
 
-            var rep = FindOrCreateTriggerRepresentation(trigger, currentStateRepresentation);
+            var rep = FindOrCreateTriggerRepresentation(trigger, predicate, currentStateRepresentation);
 
             rep.NextStateRepresentation = FindOrCreateStateRepresentation(resultingState, config);
             rep.OnTriggerAction = onEntryAction;
@@ -225,15 +243,15 @@ namespace LiquidState.Configuration
         }
 
         private StateConfigurationHelper<TState, TTrigger> PermitInternal<TArgument>(Func<bool> predicate,
-            ParameterizedTrigger<TTrigger, TArgument> trigger,
-            TState resultingState, Action<TArgument> onEntryAction)
+                                                                                     ParameterizedTrigger<TTrigger, TArgument> trigger,
+                                                                                     TState resultingState, Action<TArgument> onEntryAction)
         {
             Contract.Requires<ArgumentNullException>(trigger != null);
             Contract.Requires<ArgumentNullException>(resultingState != null);
 
             Contract.Assume(trigger.Trigger != null);
 
-            var rep = FindOrCreateTriggerRepresentation(trigger.Trigger, currentStateRepresentation);
+            var rep = FindOrCreateTriggerRepresentation(trigger.Trigger, predicate, currentStateRepresentation);
 
             rep.NextStateRepresentation = FindOrCreateStateRepresentation(resultingState, config);
             rep.OnTriggerAction = onEntryAction;
@@ -246,7 +264,7 @@ namespace LiquidState.Configuration
         {
             Contract.Requires<ArgumentNullException>(trigger != null);
 
-            var rep = FindOrCreateTriggerRepresentation(trigger, currentStateRepresentation);
+            var rep = FindOrCreateTriggerRepresentation(trigger, predicate, currentStateRepresentation);
 
             rep.NextStateRepresentation = null;
             rep.ConditionalTriggerPredicate = predicate;

@@ -43,7 +43,8 @@ namespace LiquidState.Machines
             {
                 try
                 {
-                    if (!IsEnabled) return;
+                    if (!IsEnabled)
+                        return;
                     StateRepresentation<TState, TTrigger> rep;
                     if (configDictionary.TryGetValue(state, out rep))
                     {
@@ -81,7 +82,8 @@ namespace LiquidState.Machines
         {
             foreach (var current in CurrentStateRepresentation.Triggers)
             {
-                if (current.Trigger.Equals(trigger)) return true;
+                if (current.Key.Trigger.Equals(trigger))
+                    return true;
             }
 
             return false;
@@ -91,7 +93,7 @@ namespace LiquidState.Machines
         {
             foreach (var current in CurrentStateRepresentation.Triggers)
             {
-                if (current.NextStateRepresentation.State.Equals(state))
+                if (current.Key.NextStateRepresentation.State.Equals(state))
                     return true;
             }
 
@@ -114,32 +116,51 @@ namespace LiquidState.Machines
             {
                 try
                 {
-                    if (!IsEnabled) return;
+                    if (!IsEnabled)
+                        return;
                     var trigger = parameterizedTrigger.Trigger;
                     var triggerRep = StateConfigurationHelper<TState, TTrigger>.FindTriggerRepresentation(trigger,
-                        CurrentStateRepresentation);
+                                         CurrentStateRepresentation);
 
-                    if (triggerRep == null)
+                    if (triggerRep == null || triggerRep.Count == 0)
                     {
                         HandleInvalidTrigger(trigger);
                         return;
                     }
 
                     var previousState = CurrentState;
+                    TriggerRepresentation<TTrigger, TState> rep = null;
 
-                    var predicate = triggerRep.ConditionalTriggerPredicate;
-                    if (predicate != null)
+                    foreach (var item in triggerRep)
                     {
-                        if (!predicate())
+                        var predicate = item.ConditionalTriggerPredicate;
+                        if (predicate == null)
                         {
-                            HandleInvalidTrigger(trigger);
-                            return;
+                            if (triggerRep.Count > 1)
+                            {
+                                throw new InvalidOperationException("Defaul triggers and conditional triggers cannot be used on the same resulting state");
+                            }
+
+                            rep = item;
                         }
+                        else
+                        {
+                            if (predicate() && rep == null)
+                            {
+                                rep = item;
+                            }
+                        }
+                    }
+
+                    if (rep == null)
+                    {
+                        HandleInvalidTrigger(trigger);
+                        return;
                     }
 
                     // Handle ignored trigger
 
-                    if (triggerRep.NextStateRepresentation == null)
+                    if (rep.NextStateRepresentation == null)
                     {
                         return;
                     }
@@ -149,7 +170,7 @@ namespace LiquidState.Machines
                     Action<TArgument> triggerAction = null;
                     try
                     {
-                        triggerAction = (Action<TArgument>) triggerRep.OnTriggerAction;
+                        triggerAction = (Action<TArgument>)rep.OnTriggerAction;
                     }
                     catch (InvalidCastException)
                     {
@@ -163,10 +184,11 @@ namespace LiquidState.Machines
                     ExecuteAction(currentExit);
 
                     // Trigger entry
-                    if (triggerAction != null) triggerAction.Invoke(argument);
+                    if (triggerAction != null)
+                        triggerAction.Invoke(argument);
 
 
-                    var nextStateRep = triggerRep.NextStateRepresentation;
+                    var nextStateRep = rep.NextStateRepresentation;
 
                     // Next entry
                     var nextEntry = nextStateRep.OnEntryAction;
@@ -197,31 +219,50 @@ namespace LiquidState.Machines
             {
                 try
                 {
-                    if (!IsEnabled) return;
+                    if (!IsEnabled)
+                        return;
                     var triggerRep = StateConfigurationHelper<TState, TTrigger>.FindTriggerRepresentation(trigger,
-                        CurrentStateRepresentation);
+                                         CurrentStateRepresentation);
 
-                    if (triggerRep == null)
+                    if (triggerRep == null || triggerRep.Count == 0)
                     {
                         HandleInvalidTrigger(trigger);
                         return;
                     }
 
                     var previousState = CurrentState;
+                    TriggerRepresentation<TTrigger, TState> rep = null;
 
-                    var predicate = triggerRep.ConditionalTriggerPredicate;
-                    if (predicate != null)
+                    foreach (var item in triggerRep)
                     {
-                        if (!predicate())
+                        var predicate = item.ConditionalTriggerPredicate;
+                        if (predicate == null)
                         {
-                            HandleInvalidTrigger(trigger);
-                            return;
+                            if (triggerRep.Count > 1)
+                            {
+                                throw new InvalidOperationException("Default triggers and conditional triggers cannot be used on the same resulting state");
+                            }
+
+                            rep = item;
                         }
+                        else
+                        {
+                            if (predicate() && rep == null)
+                            {
+                                rep = item;
+                            }
+                        }
+                    }
+
+                    if (rep == null)
+                    {
+                        HandleInvalidTrigger(trigger);
+                        return;
                     }
 
                     // Handle ignored trigger
 
-                    if (triggerRep.NextStateRepresentation == null)
+                    if (rep.NextStateRepresentation == null)
                     {
                         return;
                     }
@@ -231,7 +272,7 @@ namespace LiquidState.Machines
                     Action triggerAction = null;
                     try
                     {
-                        triggerAction = (Action) triggerRep.OnTriggerAction;
+                        triggerAction = (Action)rep.OnTriggerAction;
                     }
                     catch (InvalidCastException)
                     {
@@ -247,7 +288,7 @@ namespace LiquidState.Machines
                     // Trigger entry
                     ExecuteAction(triggerAction);
 
-                    var nextStateRep = triggerRep.NextStateRepresentation;
+                    var nextStateRep = rep.NextStateRepresentation;
 
                     // Next entry
                     var nextEntry = nextStateRep.OnEntryAction;
@@ -286,7 +327,7 @@ namespace LiquidState.Machines
         {
             get
             {
-                foreach (var triggerRepresentation in CurrentStateRepresentation.Triggers)
+                foreach (var triggerRepresentation in CurrentStateRepresentation.Triggers.Keys)
                 {
                     yield return triggerRepresentation.Trigger;
                 }
@@ -300,13 +341,15 @@ namespace LiquidState.Machines
 
         private void ExecuteAction(Action action)
         {
-            if (action != null) action.Invoke();
+            if (action != null)
+                action.Invoke();
         }
 
         private void HandleInvalidTrigger(TTrigger trigger)
         {
             var handler = UnhandledTriggerExecuted;
-            if (handler != null) handler.Invoke(trigger, CurrentStateRepresentation.State);
+            if (handler != null)
+                handler.Invoke(trigger, CurrentStateRepresentation.State);
         }
     }
 }
