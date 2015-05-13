@@ -19,7 +19,7 @@ namespace LiquidState.Representations
 
         internal AwaitableStateRepresentation(TState state)
         {
-            Contract.Requires(state != null);
+            //Contract.Requires(state != null);
 
             Contract.Ensures(State != null);
             Contract.Ensures(Triggers != null);
@@ -40,7 +40,7 @@ namespace LiquidState.Representations
 
         internal AwaitableTriggerRepresentation(TTrigger trigger)
         {
-            Contract.Requires(trigger != null);
+            //Contract.Requires(trigger != null);
             Contract.Ensures(Trigger != null);
 
             Trigger = trigger;

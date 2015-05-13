@@ -24,8 +24,8 @@ namespace LiquidState.Machines
         internal AwaitableStateMachine(TState initialState,
                                        AwaitableStateMachineConfiguration<TState, TTrigger> configuration)
         {
-            Contract.Requires(configuration != null);
-            Contract.Requires(initialState != null);
+            //Contract.Requires(configuration != null);
+            //Contract.Requires(initialState != null);
 
             CurrentStateRepresentation = configuration.GetInitialStateRepresentation(initialState);
             if (CurrentStateRepresentation == null)

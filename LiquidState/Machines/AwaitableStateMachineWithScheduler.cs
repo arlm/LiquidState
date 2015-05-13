@@ -20,9 +20,9 @@ namespace LiquidState.Machines
         internal AwaitableStateMachineWithScheduler(TState initialState,
             AwaitableStateMachineConfiguration<TState, TTrigger> config, TaskScheduler scheduler)
         {
-            Contract.Requires(initialState != null);
-            Contract.Requires(config != null);
-            Contract.Requires(scheduler != null);
+            //Contract.Requires(initialState != null);
+            //Contract.Requires(config != null);
+            //Contract.Requires(scheduler != null);
 
             machine = new AwaitableStateMachine<TState, TTrigger>(initialState, config);
             Scheduler = scheduler;

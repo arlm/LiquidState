@@ -34,20 +34,20 @@ namespace LiquidState.Configuration
 
         public AwaitableStateConfigurationHelper<TState, TTrigger> ForState(TState state)
         {
-            Contract.Requires<ArgumentNullException>(state != null);
+            //Contract.Requires<ArgumentNullException>(state != null);
 
             return new AwaitableStateConfigurationHelper<TState, TTrigger>(Config, state);
         }
 
         public ParameterizedTrigger<TTrigger, TArgument> SetTriggerParameter<TArgument>(TTrigger trigger)
         {
-            Contract.Requires<ArgumentNullException>(trigger != null);
+            //Contract.Requires<ArgumentNullException>(trigger != null);
             return new ParameterizedTrigger<TTrigger, TArgument>(trigger);
         }
 
         internal AwaitableStateRepresentation<TState, TTrigger> GetInitialStateRepresentation(TState initialState)
         {
-            Contract.Requires(initialState != null);
+            //Contract.Requires(initialState != null);
 
             AwaitableStateRepresentation<TState, TTrigger> rep;
             if (Config.TryGetValue(initialState, out rep))

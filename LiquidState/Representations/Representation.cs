@@ -18,7 +18,7 @@ namespace LiquidState.Representations
 
         internal StateRepresentation(TState state)
         {
-            Contract.Requires(state != null);
+            //Contract.Requires(state != null);
             Contract.Ensures(State != null);
 
             State = state;
@@ -36,7 +36,7 @@ namespace LiquidState.Representations
 
         internal TriggerRepresentation(TTrigger trigger)
         {
-            Contract.Requires(trigger != null);
+            //Contract.Requires(trigger != null);
             Contract.Ensures(Trigger != null);
 
             Trigger = trigger;

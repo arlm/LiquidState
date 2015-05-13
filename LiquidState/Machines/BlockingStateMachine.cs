@@ -22,8 +22,8 @@ namespace LiquidState.Machines
 
         internal BlockingStateMachine(TState initialState, StateMachineConfiguration<TState, TTrigger> configuration)
         {
-            Contract.Requires(configuration != null);
-            Contract.Requires(initialState != null);
+            //Contract.Requires(configuration != null);
+            //Contract.Requires(initialState != null);
 
             CurrentStateRepresentation = configuration.GetInitialStateRepresentation(initialState);
             if (CurrentStateRepresentation == null)

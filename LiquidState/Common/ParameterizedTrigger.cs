@@ -13,7 +13,7 @@ namespace LiquidState.Common
 
         internal ParameterizedTrigger(TTrigger trigger)
         {
-            Contract.Requires(trigger != null);
+            //Contract.Requires(trigger != null);
 
             Trigger = trigger;
         }

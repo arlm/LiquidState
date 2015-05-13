@@ -22,8 +22,8 @@ namespace LiquidState.Machines
 
         internal AsyncStateMachine(TState initialState, AwaitableStateMachineConfiguration<TState, TTrigger> config)
         {
-            Contract.Requires(initialState != null);
-            Contract.Requires(config != null);
+            //Contract.Requires(initialState != null);
+            //Contract.Requires(config != null);
 
             machine = new AwaitableStateMachine<TState, TTrigger>(initialState, config);
             actionsQueue = ImmutableQueue.Create<Func<Task>>();

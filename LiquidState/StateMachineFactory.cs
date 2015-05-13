@@ -18,8 +18,8 @@ namespace LiquidState
         public static IStateMachine<TState, TTrigger> Create<TState, TTrigger>(TState initialState,
             StateMachineConfiguration<TState, TTrigger> config, bool blocking = false)
         {
-            Contract.Requires<ArgumentNullException>(initialState != null);
-            Contract.Requires<ArgumentNullException>(config != null);
+            //Contract.Requires<ArgumentNullException>(initialState != null);
+            //Contract.Requires<ArgumentNullException>(config != null);
 
             IStateMachine<TState, TTrigger> sm;
             if (blocking)
@@ -39,8 +39,8 @@ namespace LiquidState
             TState initialState,
             AwaitableStateMachineConfiguration<TState, TTrigger> config, bool asyncMachine = true)
         {
-            Contract.Requires<ArgumentNullException>(initialState != null);
-            Contract.Requires<ArgumentNullException>(config != null);
+            //Contract.Requires<ArgumentNullException>(initialState != null);
+            //Contract.Requires<ArgumentNullException>(config != null);
 
             return Create(initialState, config, asyncMachine, null);
         }
@@ -49,9 +49,9 @@ namespace LiquidState
             TState initialState,
             AwaitableStateMachineConfiguration<TState, TTrigger> config, TaskScheduler customScheduler)
         {
-            Contract.Requires<ArgumentNullException>(initialState != null);
-            Contract.Requires<ArgumentNullException>(config != null);
-            Contract.Requires<ArgumentNullException>(customScheduler != null);
+            //Contract.Requires<ArgumentNullException>(initialState != null);
+            //Contract.Requires<ArgumentNullException>(config != null);
+            //Contract.Requires<ArgumentNullException>(customScheduler != null);
 
             return Create(initialState, config, false, null);
         }

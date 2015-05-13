@@ -28,20 +28,20 @@ namespace LiquidState.Configuration
 
         public StateConfigurationHelper<TState, TTrigger> ForState(TState state)
         {
-            Contract.Requires<ArgumentNullException>(state != null);
+            //Contract.Requires<ArgumentNullException>(state != null);
 
             return new StateConfigurationHelper<TState, TTrigger>(Config, state);
         }
 
         public ParameterizedTrigger<TTrigger, TArgument> SetTriggerParameter<TArgument>(TTrigger trigger)
         {
-            Contract.Requires<ArgumentNullException>(trigger != null);
+            //Contract.Requires<ArgumentNullException>(trigger != null);
             return new ParameterizedTrigger<TTrigger, TArgument>(trigger);
         }
 
         internal StateRepresentation<TState, TTrigger> GetInitialStateRepresentation(TState initialState)
         {
-            Contract.Requires(initialState != null);
+            //Contract.Requires(initialState != null);
 
             StateRepresentation<TState, TTrigger> rep;
             if (Config.TryGetValue(initialState, out rep))

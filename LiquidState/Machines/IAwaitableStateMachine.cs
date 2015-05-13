@@ -46,7 +46,7 @@ namespace LiquidState.Machines
         public Task FireAsync<TArgument>(ParameterizedTrigger<U, TArgument> parameterizedTrigger,
             TArgument argument)
         {
-            Contract.Requires<NullReferenceException>(parameterizedTrigger != null);
+            //Contract.Requires<NullReferenceException>(parameterizedTrigger != null);
             return default(Task);
         }
 

@@ -41,7 +41,7 @@ namespace LiquidState.Machines
 
         public void Fire<TArgument>(ParameterizedTrigger<U, TArgument> parameterizedTrigger, TArgument argument)
         {
-            Contract.Requires<NullReferenceException>(parameterizedTrigger != null);
+            //Contract.Requires<NullReferenceException>(parameterizedTrigger != null);
         }
 
         public abstract void Fire(U trigger);
